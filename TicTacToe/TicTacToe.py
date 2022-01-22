@@ -1,30 +1,44 @@
 
 
-matx=[['_','_','_'],['_','_','_'],['_','_','_']]
+#matx=[['_','_','_'],['_','_','_'],['_','_','_']]
 
 # matx=[['_']*3 for i in range(3)]
 # [[i,i] for i in range(3)]
-# [[i,i-1] for i in range(3)]
-
-def mapWinningCombos():
-    lines = []
-    # build list of horizontal lines
-    for row in range(3):
-        line = []
-        for col in range(3):
-            line.append([row, col])
-        lines.append(line)
-    # build list of vertical lines
-    for col in range(3):
-        line = []
-        for row in range(3):
-            line.append([row, col])
-        lines.append(line)
-    # add diagonal lines
-    lines.append([[0, 0], [1, 1], [2, 2]])
-    lines.append([[0, 2], [1, 1], [2, 0]])
+# [[i,2-i] for i in range(3)]
+def gameMenu():
+    print("Welcome")
     
-    return lines
+
+
+def prepareGameEnvironment(boardSize=3, gameMode='1v1'):
+    matx=[['_']*boardSize for i in range(boardSize)]
+    winningCombos = mapWinningCombos(boardSize)
+    player=''
+    
+    return (matx, winningCombos, player)
+
+
+def mapWinningCombos(boardSize):
+    winningCombos = []
+    # build list of horizontal lines
+    for row in range(boardSize):
+        line = []
+        for col in range(boardSize):
+            line.append([row, col])
+        winningCombos.append(line)
+    # build list of vertical lines
+    for col in range(boardSize):
+        line = []
+        for row in range(boardSize):
+            line.append([row, col])
+        winningCombos.append(line)
+    # add diagonal lines
+    #lines.append([[0, 0], [1, 1], [2, 2]])
+    #lines.append([[0, 2], [1, 1], [2, 0]])
+    winningCombos.append([[i,i] for i in range(boardSize)])
+    winningCombos.append([[i,boardSize-1-i] for i in range(boardSize)])
+    
+    return winningCombos
 
 
 def checkWinningCombo(player, comboList):
@@ -36,6 +50,9 @@ def checkWinningCombo(player, comboList):
             elif ('X' in  [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) & \
                 ('O' in [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) :
                     updated_comboList.remove(comboList[i])
+        
+        if updated_comboList == []:
+            announceWinner('Draw')
         
         return updated_comboList
 
@@ -90,16 +107,23 @@ def matxUpdate(inputData, player):
 
 def announceWinner(player):
     printBoard()
-    print(f'Player {player} has won the game!')
+    
+    if player == 'X' | 'O':
+        print(f'Player {player} has won the game!')
+    else:
+        print("It's a draw!")
+        
     quit()
 
 
 
 
 
-winningCombos=mapWinningCombos()
+#winningCombos=mapWinningCombos()
 
-player=''
+#player=''
+matx, winningCombos, player = prepareGameEnvironment()
+
 while True:
     
     player = 'X' if player != 'X' else 'O'
@@ -108,6 +132,8 @@ while True:
     inputData=getPlayerInput(player)
     if validatePlayerInput(inputData):
         matxUpdate(inputData,player)
+    else:
+        print("err")
     phase=checkWinningCombo(player, winningCombos)
     printBoard()
     print(phase)
