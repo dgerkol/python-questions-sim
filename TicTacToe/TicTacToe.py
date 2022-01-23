@@ -27,15 +27,31 @@ def gameMenu():
 
 def assignPlayers(manualChoice=''):
     if manualChoice:
-        return manualChoice
+        return manualChoice.upper()
     
-    humanPlayer = (random.sample(['X','O'],1))[0]
+    return (random.sample(['X','O'], 1))[0]
 
 
-def prepareGameEnvironment(boardSize=3, gameMode='1v1'):
+def prepareGameEnvironment(boardSize, gameMode):
     matx=[['_']*boardSize for i in range(boardSize)]
     winningCombos = mapWinningCombos(boardSize)
-    player=''
+    
+    if gameMode in ['1v1', 'AIvAI']:
+        player=''
+    else:
+        manualChoice = input("Manually choose yourself player symbol? [y/n]\n:> ")
+
+        while manualChoice not in ['y', 'Y', 'n', 'N']:
+            manualChoice = input("Manually choose yourself player symbol? [y/n]\n:> ")
+            
+        if manualChoice in ['y', 'Y']:
+            player = input("Choose yourself a player symbol [x/o]\n:> ")
+            
+            while player not in ['x', 'X', 'o', 'O']:
+                player = input("Choose yourself a player symbol [x/o]\n:> ")
+            player = assignPlayers(player)
+        else:
+            player = assignPlayers()
     
     return (matx, winningCombos, player)
 
@@ -116,7 +132,6 @@ def validatePlayerInput(inputData):
 
     if (1 <= inputData[0] <= 3) & (1 <= inputData[1] <= 3):
         if matx[inputData[0]-1][inputData[1]-1] == '_':
-            print("FREE")
             return True
         print("No cheating - cell is already taken!")
     else:
@@ -126,7 +141,7 @@ def validatePlayerInput(inputData):
 
 
 def aiTurn(player):
-    
+    pass
 
 
 def matxUpdate(inputData, player):
@@ -156,29 +171,35 @@ while True:
     menuSelect = gameMenu()
     matx, winningCombos, player = prepareGameEnvironment(menuSelect[0], menuSelect[1])
     
-    while True:
-        player = 'X' if player != 'X' else 'O'
+    
+    if menuSelect[1] == '1v1':
+        while True:
+            player = 'X' if player != 'X' else 'O'
 
-        printBoard()
-        inputData = getPlayerInput(player)
-
-        while not validatePlayerInput(inputData):
+            printBoard()
             inputData = getPlayerInput(player)
+
+            while not validatePlayerInput(inputData):
+                inputData = getPlayerInput(player)
+            
+            matxUpdate(inputData, player)
         
-        matxUpdate(inputData, player)
-    
-    
-    #if validatePlayerInput(inputData):
-    #    matxUpdate(inputData,player)
-    #else:
-    #    print("err")
-    #phase=checkWinningCombo(player, winningCombos)
-        printBoard()
-    #print(phase)
-        winningCombos = checkWinningCombo(player, winningCombos)
         
-        if winningCombos == 'END_GAME':
-            break
+        #if validatePlayerInput(inputData):
+        #    matxUpdate(inputData,player)
+        #else:
+        #    print("err")
+        #phase=checkWinningCombo(player, winningCombos)
+            printBoard()
+        #print(phase)
+            winningCombos = checkWinningCombo(player, winningCombos)
+            
+            if winningCombos == 'END_GAME':
+                break
+    
+    if menuSelect[1] == '1vAI':
+        while True:
+            if 
     
     again = input("New game? [y/n]\n:> ")
     
