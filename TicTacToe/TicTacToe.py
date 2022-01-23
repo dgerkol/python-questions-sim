@@ -1,4 +1,4 @@
-
+import random
 
 #matx=[['_','_','_'],['_','_','_'],['_','_','_']]
 
@@ -23,6 +23,13 @@ def gameMenu():
     boardSize = 3 if (boardSize == '1') else 4 if (boardSize == '2') else quit()
 
     return (boardSize, gameMode)
+
+
+def assignPlayers(manualChoice=''):
+    if manualChoice:
+        return manualChoice
+    
+    humanPlayer = (random.sample(['X','O'],1))[0]
 
 
 def prepareGameEnvironment(boardSize=3, gameMode='1v1'):
@@ -116,6 +123,10 @@ def validatePlayerInput(inputData):
         print("Wrong cell index chosen - please enter a free cell 1-3")
 
     return False
+
+
+def aiTurn(player):
+    
 
 
 def matxUpdate(inputData, player):
