@@ -6,8 +6,23 @@
 # [[i,i] for i in range(3)]
 # [[i,2-i] for i in range(3)]
 def gameMenu():
-    print("Welcome")
-    
+    print("Welcome - Select game mode:")
+    gameMode = input('1). 1v1\n2). 1vAI\n3). AIvAI\n4). Quit game\n\n:> ')
+
+    while gameMode not in ['1', '2', '3', '4']:
+        print("Error: wrong input - select from below:")
+        gameMode = input('1). 1v1\n2). 1vAI\n3). AIvAI\n4). Quit game\n\n:> ')
+    gameMode = '1v1' if (gameMode == '1') else '1vAI' if (gameMode == '2') else 'AIvAI' if (gameMode == '3') else quit()
+
+    print("\nSelect board size:")
+    boardSize = input('1). 3x3\n2). 4x4\n3). Quit game\n\n:> ')
+
+    while boardSize not in ['1', '2', '3']:
+        print("Error: wrong input - select from below:")
+        boardSize = input('1). 3x3\n2). 4x4\n3). Quit game\n\n:> ')
+    boardSize = 3 if (boardSize == '1') else 4 if (boardSize == '2') else quit()
+
+    return (boardSize, gameMode)
 
 
 def prepareGameEnvironment(boardSize=3, gameMode='1v1'):
@@ -47,12 +62,14 @@ def checkWinningCombo(player, comboList):
         for i in range(len(comboList)):
             if ([matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]).count(player) == 3:
                 announceWinner(player)
+                return 'END_GAME'
             elif ('X' in  [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) & \
                 ('O' in [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) :
                     updated_comboList.remove(comboList[i])
         
         if updated_comboList == []:
             announceWinner('Draw')
+            return 'END_GAME'
         
         return updated_comboList
 
@@ -76,7 +93,7 @@ def printBoard():
 
 def getPlayerInput(player):
     print(f"Player {player}, it's your turn to play!")
-    cellX, cellY = input("Choose a free cell using RowCol index (ex: 21): ")
+    cellX, cellY = input("Choose a free cell using RowCol index (ex: 21):> ")
     
     return [cellX, cellY]
 
@@ -89,16 +106,16 @@ def validatePlayerInput(inputData):
     except:
         print("Error in input!")
         return False
-    
+
     if (1 <= inputData[0] <= 3) & (1 <= inputData[1] <= 3):
         if matx[inputData[0]-1][inputData[1]-1] == '_':
+            print("FREE")
             return True
-        else:
-            print("No cheating - cell is already taken!")
-            return False
+        print("No cheating - cell is already taken!")
     else:
         print("Wrong cell index chosen - please enter a free cell 1-3")
-        return False
+
+    return False
 
 
 def matxUpdate(inputData, player):
@@ -108,12 +125,11 @@ def matxUpdate(inputData, player):
 def announceWinner(player):
     printBoard()
     
-    if player == 'X' | 'O':
-        print(f'Player {player} has won the game!')
+    if player in ['X', 'O']:
+        print(f'Player {player} has won the game!\n')
     else:
-        print("It's a draw!")
-        
-    quit()
+        print("It's a draw!\n")
+
 
 
 
@@ -122,31 +138,50 @@ def announceWinner(player):
 #winningCombos=mapWinningCombos()
 
 #player=''
-matx, winningCombos, player = prepareGameEnvironment()
+#matx, winningCombos, player = prepareGameEnvironment()
 
 while True:
     
-    player = 'X' if player != 'X' else 'O'
+    menuSelect = gameMenu()
+    matx, winningCombos, player = prepareGameEnvironment(menuSelect[0], menuSelect[1])
     
-    printBoard()
-    inputData=getPlayerInput(player)
-    if validatePlayerInput(inputData):
-        matxUpdate(inputData,player)
+    while True:
+        player = 'X' if player != 'X' else 'O'
+
+        printBoard()
+        inputData = getPlayerInput(player)
+
+        while not validatePlayerInput(inputData):
+            inputData = getPlayerInput(player)
+        
+        matxUpdate(inputData, player)
+    
+    
+    #if validatePlayerInput(inputData):
+    #    matxUpdate(inputData,player)
+    #else:
+    #    print("err")
+    #phase=checkWinningCombo(player, winningCombos)
+        printBoard()
+    #print(phase)
+        winningCombos = checkWinningCombo(player, winningCombos)
+        
+        if winningCombos == 'END_GAME':
+            break
+    
+    again = input("New game? [y/n]\n:> ")
+    
+    #while again != 'y' and again != 'Y' and again != 'n' and again != 'N':
+    while again not in ['y', 'Y', 'n', 'N']:
+        again = input("New game? [y/n]\n:> ")
+    
+    if again in ['y', 'Y']:
+        del again
+        continue
     else:
-        print("err")
-    phase=checkWinningCombo(player, winningCombos)
-    printBoard()
-    print(phase)
-    
+        quit()
     
     
 
-'''
-inputData=getPlayerInput('O')
-if validatePlayerInput(inputData):
-    matxUpdate(inputData,'O')
-phase=checkWinningCombo('O', winningCombos)
-printBoard()
-print(phase)
-'''
+
 
