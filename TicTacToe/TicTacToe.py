@@ -13,7 +13,7 @@ def gameMenu():
     gameMode = '1v1' if (gameMode == '1') else '1vAI' if (gameMode == '2') else 'AIvAI' if (gameMode == '3') else quit()
     
     print("\nSelect board size:")
-    boardSize = input('1). 3x3\n2). 4x4\n3). Quit game\n\n:> ')
+    boardSize = input('1). 3x3\n2). 4x4 (EXPERIMENTAL: still under developement)\n3). Quit game\n\n:> ')
     
     while boardSize not in ['1', '2', '3']:
         print("Error: wrong input - select from below:")
@@ -51,7 +51,7 @@ def prepareGameEnvironment(boardSize, gameMode):
         else:
             player = assignPlayers()
     
-    return (matx, winningCombos, player)
+    return (boardSize, matx, winningCombos, player)
 
 
 def mapWinningCombos(boardSize):
@@ -96,17 +96,21 @@ def checkWinningCombo(player, comboList):
 
 def printBoardLine(boardSize='', row=''):
     if row:
-        print(f' {matx[row-1][0]} | {matx[row-1][1]} | {matx[row-1][2]}')
+        print('| ', end='')
+        for i in range(boardSize):
+            print(f'{matx[row-1][i]} | ', end='')
+        print('')
     else:
-        print((('-' *boardSize + '+')*boardSize).rstrip('+'))
+        print(' ', end='')
+        print((('-' *3 + '+')*boardSize).rstrip('+'))
 
 
-def printBoard():
+def printBoard(boardSize):
     print('')
-    for i in range(1,4):
-        printBoardLine(3)
-        printBoardLine(3,i)
-    printBoardLine(3)
+    for i in range(1,boardSize+1):
+        printBoardLine(boardSize)
+        printBoardLine(boardSize,i)
+    printBoardLine(boardSize)
     print('')
 
 
@@ -154,9 +158,7 @@ def matxUpdate(inputData, player):
     matx[inputData[0]-1][inputData[1]-1] = 'X' if player == 'X' else 'O'
 
 
-def announceWinner(player):
-    printBoard()
-    
+def announceWinner(player):    
     if player in ['X', 'O']:
         print(f'Player {player} has won the game!\n')
     else:
@@ -167,21 +169,21 @@ def announceWinner(player):
 while True:
     
     menuSelect = gameMenu()
-    matx, winningCombos, player = prepareGameEnvironment(menuSelect[0], menuSelect[1])
+    boardSize, matx, winningCombos, player = prepareGameEnvironment(menuSelect[0], menuSelect[1])
     
     
     if menuSelect[1] == '1v1':
         while True:
             player = 'X' if player != 'X' else 'O'
             
-            printBoard()
+            printBoard(boardSize)
             inputData = getPlayerInput(player)
             
             while not validatePlayerInput(inputData):
                 inputData = getPlayerInput(player)
             
             matxUpdate(inputData, player)
-            printBoard()
+            printBoard(boardSize)
             winningCombos = checkWinningCombo(player, winningCombos)
             
             if winningCombos == 'END_GAME':
@@ -193,20 +195,20 @@ while True:
         
         while True:
             if currentTurn == player:
-                printBoard()
+                printBoard(boardSize)
                 inputData = getPlayerInput(player)
                 while not validatePlayerInput(inputData):
                     inputData = getPlayerInput(player)
                 matxUpdate(inputData, player)
-                printBoard()
+                printBoard(boardSize)
                 winningCombos = checkWinningCombo(player, winningCombos)
                 if winningCombos == 'END_GAME':
                     break
             else:
-                printBoard()
+                printBoard(boardSize)
                 inputData = aiTurn(ai, matx)
                 matxUpdate(inputData, ai)
-                printBoard()
+                printBoard(boardSize)
                 winningCombos = checkWinningCombo(ai, winningCombos)
                 if winningCombos == 'END_GAME':
                     break
@@ -219,18 +221,18 @@ while True:
         
         while True:
             if currentTurn == ai1:
-                printBoard()
+                printBoard(boardSize)
                 inputData = aiTurn(ai1, matx)
                 matxUpdate(inputData, ai1)
-                printBoard()
+                printBoard(boardSize)
                 winningCombos = checkWinningCombo(ai1, winningCombos)
                 if winningCombos == 'END_GAME':
                     break
             else:
-                printBoard()
+                printBoard(boardSize)
                 inputData = aiTurn(ai2, matx)
                 matxUpdate(inputData, ai2)
-                printBoard()
+                printBoard(boardSize)
                 winningCombos = checkWinningCombo(ai2, winningCombos)
                 if winningCombos == 'END_GAME':
                     break
