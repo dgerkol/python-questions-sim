@@ -1,8 +1,7 @@
 import random
 
-#matx=[['_','_','_'],['_','_','_'],['_','_','_']]
 
-
+#Welcome menu + choices for game type configurations 
 def gameMenu():
     print("Welcome - Select game mode:")
     gameMode = input('1). 1v1\n2). 1vAI\n3). AIvAI\n4). Quit game\n\n:> ')
@@ -23,13 +22,17 @@ def gameMenu():
     return (boardSize, gameMode)
 
 
+#[For '1vAI' and 'AIvAI' game types]: Assign player marks
 def assignPlayers(manualChoice=''):
+    #[For '1vAI']: player chose himself a mark (no random mark coice for player)
     if manualChoice:
         return manualChoice.upper()
     
+    #Assign random marks for player & AI (affects starting player)
     return (random.sample(['X','O'], 1))[0]
 
 
+#Prepare a game environment and play style according to user choices in gameMenu()
 def prepareGameEnvironment(boardSize, gameMode):
     matx=[['_']*boardSize for i in range(boardSize)]
     winningCombos = mapWinningCombos(boardSize)
@@ -54,6 +57,7 @@ def prepareGameEnvironment(boardSize, gameMode):
     return (boardSize, matx, winningCombos, player)
 
 
+#Create a list of all possible winning combination for chosen boardSize
 def mapWinningCombos(boardSize):
     winningCombos = []
     # build list of horizontal lines
@@ -78,14 +82,18 @@ def mapWinningCombos(boardSize):
 def checkWinningCombo(player, comboList):
         updated_comboList = comboList.copy()
         
+        #Create a list of matx cell content using comboList list of winning cell index numbers
         for i in range(len(comboList)):
+            #    matx[       row        ][        col       ]  matx[       row        ][        col       ]  matx[       row        ][        col       ]
             if ([matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]).count(player) == 3:
                 announceWinner(player)
                 return 'END_GAME'
             elif ('X' in  [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) & \
                 ('O' in [matx[comboList[i][0][0]][comboList[i][0][1]], matx[comboList[i][1][0]][comboList[i][1][1]], matx[comboList[i][2][0]][comboList[i][2][1]]]) :
+                    #If a row / col has 'X' and 'O' in it - remove all possible combo checks with that row / col
                     updated_comboList.remove(comboList[i])
         
+        #If possible combos list is empty - no more winning moves available - announce draw!
         if updated_comboList == []:
             announceWinner('Draw')
             return 'END_GAME'
@@ -93,7 +101,8 @@ def checkWinningCombo(player, comboList):
         return updated_comboList
 
 
-
+#Print board borders according to boardSize with matx data ('X' and 'O' already saved to matx)
+#When function is called with row param, print row borders, else print col borders
 def printBoardLine(boardSize='', row=''):
     if row:
         print('| ', end='')
@@ -105,6 +114,7 @@ def printBoardLine(boardSize='', row=''):
         print((('-' *3 + '+')*boardSize).rstrip('+'))
 
 
+#Print the board part by part
 def printBoard(boardSize):
     print('')
     for i in range(1,boardSize+1):
@@ -114,6 +124,8 @@ def printBoard(boardSize):
     print('')
 
 
+#Get player input of cell number
+#If player is AI, get cell number as fixed param from aiTurn()
 def getPlayerInput(player, ai=[]):
     print(f"Player {player}, it's your turn to play!")
     
@@ -125,6 +137,10 @@ def getPlayerInput(player, ai=[]):
     return [cellX, cellY]
 
 
+#Validate player input:
+#Make sure player typed only numbers
+#Make sure player typed valid number combination
+#Make sure cell is empty
 def validatePlayerInput(inputData):
     
     try:
@@ -144,20 +160,28 @@ def validatePlayerInput(inputData):
     return False
 
 
+#Perform AI turn - random selection of empty cell
 def aiTurn(player, matx):
+    #Create a list of rows with empty cell inside
     freeRows = [row for row in range(len(matx)) if matx[row].count('_') > 0]
+    #Randomly choose a row from freeRows list
     cellX = random.sample(freeRows, 1)[0]
     
+    #Create a list of empty cols in randomly selected row from freeRows in cellX
     freeCol = [col for col in range(len(matx)) if matx[cellX][col] == '_']
+    #Randomly select a col from freeCol list
     cellY = random.sample(freeCol, 1)[0]
     
+    #Return randomly selected free cell
     return (getPlayerInput(player, [cellX+1, cellY+1]))
 
 
+#Store new input to matx
 def matxUpdate(inputData, player):
     matx[inputData[0]-1][inputData[1]-1] = 'X' if player == 'X' else 'O'
 
 
+#Winning player & game draw announcment
 def announceWinner(player):    
     if player in ['X', 'O']:
         print(f'Player {player} has won the game!\n')
