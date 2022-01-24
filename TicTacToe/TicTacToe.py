@@ -1,34 +1,55 @@
-
+import random
 
 #matx=[['_','_','_'],['_','_','_'],['_','_','_']]
 
-# matx=[['_']*3 for i in range(3)]
-# [[i,i] for i in range(3)]
-# [[i,2-i] for i in range(3)]
+
 def gameMenu():
     print("Welcome - Select game mode:")
     gameMode = input('1). 1v1\n2). 1vAI\n3). AIvAI\n4). Quit game\n\n:> ')
-
+    
     while gameMode not in ['1', '2', '3', '4']:
         print("Error: wrong input - select from below:")
         gameMode = input('1). 1v1\n2). 1vAI\n3). AIvAI\n4). Quit game\n\n:> ')
     gameMode = '1v1' if (gameMode == '1') else '1vAI' if (gameMode == '2') else 'AIvAI' if (gameMode == '3') else quit()
-
+    
     print("\nSelect board size:")
     boardSize = input('1). 3x3\n2). 4x4\n3). Quit game\n\n:> ')
-
+    
     while boardSize not in ['1', '2', '3']:
         print("Error: wrong input - select from below:")
         boardSize = input('1). 3x3\n2). 4x4\n3). Quit game\n\n:> ')
     boardSize = 3 if (boardSize == '1') else 4 if (boardSize == '2') else quit()
-
+    
     return (boardSize, gameMode)
 
 
-def prepareGameEnvironment(boardSize=3, gameMode='1v1'):
+def assignPlayers(manualChoice=''):
+    if manualChoice:
+        return manualChoice.upper()
+    
+    return (random.sample(['X','O'], 1))[0]
+
+
+def prepareGameEnvironment(boardSize, gameMode):
     matx=[['_']*boardSize for i in range(boardSize)]
     winningCombos = mapWinningCombos(boardSize)
-    player=''
+    
+    if gameMode in ['1v1', 'AIvAI']:
+        player=''
+    else:
+        manualChoice = input("Manually choose yourself player symbol? [y/n]\n:> ")
+        
+        while manualChoice not in ['y', 'Y', 'n', 'N']:
+            manualChoice = input("Manually choose yourself player symbol? [y/n]\n:> ")
+            
+        if manualChoice in ['y', 'Y']:
+            player = input("Choose yourself a player symbol [x/o]\n:> ")
+            
+            while player not in ['x', 'X', 'o', 'O']:
+                player = input("Choose yourself a player symbol [x/o]\n:> ")
+            player = assignPlayers(player)
+        else:
+            player = assignPlayers()
     
     return (matx, winningCombos, player)
 
@@ -48,8 +69,6 @@ def mapWinningCombos(boardSize):
             line.append([row, col])
         winningCombos.append(line)
     # add diagonal lines
-    #lines.append([[0, 0], [1, 1], [2, 2]])
-    #lines.append([[0, 2], [1, 1], [2, 0]])
     winningCombos.append([[i,i] for i in range(boardSize)])
     winningCombos.append([[i,boardSize-1-i] for i in range(boardSize)])
     
@@ -91,9 +110,13 @@ def printBoard():
     print('')
 
 
-def getPlayerInput(player):
+def getPlayerInput(player, ai=[]):
     print(f"Player {player}, it's your turn to play!")
-    cellX, cellY = input("Choose a free cell using RowCol index (ex: 21):> ")
+    
+    if ai:
+        cellX, cellY = ai
+    else:
+        cellX, cellY = input("Choose a free cell using RowCol index (ex: 21):> ")
     
     return [cellX, cellY]
 
@@ -109,13 +132,22 @@ def validatePlayerInput(inputData):
 
     if (1 <= inputData[0] <= 3) & (1 <= inputData[1] <= 3):
         if matx[inputData[0]-1][inputData[1]-1] == '_':
-            print("FREE")
             return True
         print("No cheating - cell is already taken!")
     else:
         print("Wrong cell index chosen - please enter a free cell 1-3")
 
     return False
+
+
+def aiTurn(player, matx):
+    freeRows = [row for row in range(len(matx)) if matx[row].count('_') > 0]
+    cellX = random.sample(freeRows, 1)[0]
+    
+    freeCol = [col for col in range(len(matx)) if matx[cellX][col] == '_']
+    cellY = random.sample(freeCol, 1)[0]
+    
+    return (getPlayerInput(player, [cellX+1, cellY+1]))
 
 
 def matxUpdate(inputData, player):
@@ -131,47 +163,82 @@ def announceWinner(player):
         print("It's a draw!\n")
 
 
-
-
-
-
-#winningCombos=mapWinningCombos()
-
-#player=''
-#matx, winningCombos, player = prepareGameEnvironment()
-
+# ---- MAIN GAME FUNCTIONALITY ---- #
 while True:
     
     menuSelect = gameMenu()
     matx, winningCombos, player = prepareGameEnvironment(menuSelect[0], menuSelect[1])
     
-    while True:
-        player = 'X' if player != 'X' else 'O'
-
-        printBoard()
-        inputData = getPlayerInput(player)
-
-        while not validatePlayerInput(inputData):
+    
+    if menuSelect[1] == '1v1':
+        while True:
+            player = 'X' if player != 'X' else 'O'
+            
+            printBoard()
             inputData = getPlayerInput(player)
+            
+            while not validatePlayerInput(inputData):
+                inputData = getPlayerInput(player)
+            
+            matxUpdate(inputData, player)
+            printBoard()
+            winningCombos = checkWinningCombo(player, winningCombos)
+            
+            if winningCombos == 'END_GAME':
+                break
+            
+    if menuSelect[1] == '1vAI':
+        ai = 'O' if player == 'X' else 'X'
+        currentTurn = player if player == 'X' else ai
         
-        matxUpdate(inputData, player)
-    
-    
-    #if validatePlayerInput(inputData):
-    #    matxUpdate(inputData,player)
-    #else:
-    #    print("err")
-    #phase=checkWinningCombo(player, winningCombos)
-        printBoard()
-    #print(phase)
-        winningCombos = checkWinningCombo(player, winningCombos)
+        while True:
+            if currentTurn == player:
+                printBoard()
+                inputData = getPlayerInput(player)
+                while not validatePlayerInput(inputData):
+                    inputData = getPlayerInput(player)
+                matxUpdate(inputData, player)
+                printBoard()
+                winningCombos = checkWinningCombo(player, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
+            else:
+                printBoard()
+                inputData = aiTurn(ai, matx)
+                matxUpdate(inputData, ai)
+                printBoard()
+                winningCombos = checkWinningCombo(ai, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
+            
+            currentTurn = player if currentTurn != player else ai
+            
+    if menuSelect[1] == 'AIvAI':
+        ai1, ai2 = 'X', 'Y'
+        currentTurn = ai1 if ai1 == 'X' else ai2
         
-        if winningCombos == 'END_GAME':
-            break
-    
+        while True:
+            if currentTurn == ai1:
+                printBoard()
+                inputData = aiTurn(ai1, matx)
+                matxUpdate(inputData, ai1)
+                printBoard()
+                winningCombos = checkWinningCombo(ai1, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
+            else:
+                printBoard()
+                inputData = aiTurn(ai2, matx)
+                matxUpdate(inputData, ai2)
+                printBoard()
+                winningCombos = checkWinningCombo(ai2, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
+            
+            currentTurn = ai1 if currentTurn != ai1 else ai2
+            
     again = input("New game? [y/n]\n:> ")
     
-    #while again != 'y' and again != 'Y' and again != 'n' and again != 'N':
     while again not in ['y', 'Y', 'n', 'N']:
         again = input("New game? [y/n]\n:> ")
     
@@ -181,7 +248,3 @@ while True:
     else:
         quit()
     
-    
-
-
-
