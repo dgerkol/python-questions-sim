@@ -114,9 +114,13 @@ def printBoard():
     print('')
 
 
-def getPlayerInput(player):
+def getPlayerInput(player, ai=[]):
     print(f"Player {player}, it's your turn to play!")
-    cellX, cellY = input("Choose a free cell using RowCol index (ex: 21):> ")
+    
+    if ai:
+        cellX, cellY = ai
+    else:
+        cellX, cellY = input("Choose a free cell using RowCol index (ex: 21):> ")
     
     return [cellX, cellY]
 
@@ -140,8 +144,14 @@ def validatePlayerInput(inputData):
     return False
 
 
-def aiTurn(player):
-    pass
+def aiTurn(player, matx):
+    freeRows = [row for row in range(len(matx)) if matx[row].count('_') > 0]
+    cellX = random.sample(freeRows, 1)[0]
+    
+    freeCol = [col for col in range(len(matx)) if matx[cellX][col] == '_']
+    cellY = random.sample(freeCol, 1)[0]
+    
+    return (getPlayerInput(player, [cellX, cellY]))
 
 
 def matxUpdate(inputData, player):
@@ -198,8 +208,28 @@ while True:
                 break
     
     if menuSelect[1] == '1vAI':
+        ai = 'O' if player == 'X' else 'X'
+        currentTurn = player if player == 'X' else ai
+
         while True:
-            if 
+            if currentTurn == player:
+                printBoard()
+                inputData = getPlayerInput(player)
+                while not validatePlayerInput(inputData):
+                    inputData = getPlayerInput(player)
+                matxUpdate(inputData, player)
+                printBoard()
+                winningCombos = checkWinningCombo(player, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
+            else:
+                printBoard()
+                inputData = aiTurn(ai, matx)
+                matxUpdate(inputData, ai)
+                printBoard()
+                winningCombos = checkWinningCombo(ai, winningCombos)
+                if winningCombos == 'END_GAME':
+                    break
     
     again = input("New game? [y/n]\n:> ")
     
